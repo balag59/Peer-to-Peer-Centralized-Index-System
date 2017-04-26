@@ -24,46 +24,52 @@ class LinkedList:
     def __init__(self):
         self.head = None
 
+    def __iter__(self):
+        current = self.head
+        while current is not None:
+            yield current
+            current = current.next
+
     def add(self,item):
-    temp = Node(item)
-    temp.setNext(self.head)
-    self.head = temp
+        temp = Node(item)
+        temp.setNext(self.head)
+        self.head = temp
 
     def size(self):
-    current = self.head
-    count = 0
-    while current != None:
-        count = count + 1
-        current = current.getNext()
+        current = self.head
+        count = 0
+        while current != None:
+              count = count + 1
+              current = current.getNext()
 
-    return count
+        return count
 
     def search(self,item):
-    current = self.head
-    found = False
-    while current != None and not found:
-        if current.getData() == item:
-            found = True
-        else:
-            current = current.getNext()
+         current = self.head
+         found = False
+         while current != None and not found:
+                if current.getData() == item:
+                   found = True
+                else:
+                   current = current.getNext()
 
-    return found
+         return found
 
     def remove(self,item):
-    current = self.head
-    previous = None
-    found = False
-    while not found:
-        if current.getData() == item:
-            found = True
-        else:
-            previous = current
-            current = current.getNext()
+        current = self.head
+        previous = None
+        found = False
+        while not found:
+            if current.getData() == item:
+                found = True
+            else:
+                previous = current
+                current = current.getNext()
 
-    if previous == None:
-        self.head = current.getNext()
-    else:
-        previous.setNext(current.getNext())
+        if previous == None:
+            self.head = current.getNext()
+        else:
+            previous.setNext(current.getNext())
 
 #create a new linked list for active peers
 active_peers = LinkedList()
@@ -84,19 +90,34 @@ class RFCItem:
         self.rfc_title = rfc_title
         self.rfc_host = rfc_host
 
+#handle new peers joining
+def client_join(data_list,client_socket):
+    host = data_list[1].split(':')[1]
+    port = data_list[2].split(':')[1]
+    active_peers.add(PeerItem(host,port))
+    client_socket.send('You have sucessfully joined the P2P network'.encode())
 
+
+def client_add(data_list,client_socket,data):
+    host = data_list[1].split(':')[1]
+    title = data_list[3].split(':')[1]
+    rfc = title.split('c')[1]
+    port = data_list[2].split(':')[1]
+    rfc_index.add(RFCItem(rfc,title,host))
+    response = "P2P-CI/1.0 200 OK\n" + "RFC " + str(rfc) + title + host + str(port)
+    client_socket.send(response.encode())
 
 #handle every new connection from a client
 def new_connection(client_socket):
-    print('new connection')
-    while(True):
-        try:
-            data = client_socket.recv(1024)
-            #client_socket.send(data)
-        except:
-            break
-    print('closing client connection')
-    client_socket.close()
+    data = client_socket.recv(1024).decode()
+    print('new request from client')
+    data_list  = data.split('\n')
+    for line in data_list:
+        print(line)
+    if data_list[0].split(' ')[0] == 'JOIN':
+        client_join(data_list,client_socket)
+    if data_list[0].split(' ')[0] == 'ADD':
+        client_add(data_list,client_socket,data)
 
 
 #main functionlity of the central server
