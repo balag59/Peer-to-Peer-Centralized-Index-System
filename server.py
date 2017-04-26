@@ -91,19 +91,31 @@ class RFCItem:
         self.rfc_title = rfc_title
         self.rfc_host = rfc_host
 
+host2port_dic = {}
+host2rfc_dic = {}
+rfc2host_dic = {}
 #handle new peers joining
 def client_join(data_list,client_socket):
     host = data_list[1].split(':')[1]
     port = data_list[2].split(':')[1]
+    host2port_dic[host] = port
     active_peers.add(PeerItem(host,port))
     client_socket.send('You have sucessfully joined the P2P network'.encode())
 
 #handle rfc's add request
-def client_add(data_list,client_socket,data):
+def client_add(data_list,client_socket):
     host = data_list[1].split(':')[1]
     title = data_list[3].split(':')[1]
     rfc = title.split('c')[1]
     port = data_list[2].split(':')[1]
+    if host in host2rfc_dic:
+        host2rfc_dic[host].append(rfc)
+    else:
+        host2rfc_dic[host] = [rfc]
+    if rfc in rfc2host_dic:
+        rfc2host_dic[rfc].append(host)
+    else:
+        rfc2host_dic[rfc] = [host]
     rfc_index.add(RFCItem(rfc,title,host))
     response = "P2P-CI/1.0 200 OK\n" + "RFC " + str(rfc) + title + host + str(port)
     client_socket.send(response.encode())
@@ -115,7 +127,21 @@ def client_list(client_socket):
         rfc = item.getData().rfc_number
         title = item.getData().rfc_title
         host = item.getData().rfc_host
+        port = host2port_dic[host]
         response += "RFC " + str(rfc) + title + host + str(port)+'\n'
+    client_socket.send(response.encode())
+
+#handle lookup rfc quest
+def client_lookup(data_list,client_socket):
+    response = "P2P-CI/1.0 200 OK\n"
+    title = data_list[3].split(':')[1]
+    rfc = title.split('c')[1]
+    host_list = []
+    for item in rfc_index:
+        if item.getData().rfc_number == rfc:
+            host_list.append(item.getData().rfc_host)
+    for h in host_list:
+        response += "RFC " + str(rfc) + title + h + str(host2port_dic[h])+'\n'
     client_socket.send(response.encode())
 
 #handle every new connection from a client
@@ -128,11 +154,11 @@ def new_connection(client_socket):
     if data_list[0].split(' ')[0] == 'JOIN':
         client_join(data_list,client_socket)
     elif data_list[0].split(' ')[0] == 'ADD':
-        client_add(data_list,client_socket,data)
+        client_add(data_list,client_socket)
     elif data_list[0].split(' ')[0] == 'LIST':
         client_list(client_socket)
     elif data_list[0].split(' ')[0] == 'LOOKUP':
-        client_lookup(data_list,client_socket,data)
+        client_lookup(data_list,client_socket)
     else:
         client_badrequest(data_list,client_socket,data)
 
@@ -140,10 +166,10 @@ def new_connection(client_socket):
 #main functionlity of the central server
 server_socket = socket.socket()         # Create a socket object
 #host = socket.gethostname() # Get local machine name
-host = socket.gethostbyname(socket.gethostname())
+server_host = socket.gethostbyname(socket.gethostname())
 port = 7734                # Reserve a port for your service.
-server_socket.bind((host, port))        # Bind to the port
-print('central server host is ',host)
+server_socket.bind((server_host, port))        # Bind to the port
+print('central server host is ',server_host)
 print('central server port is ',port)
 
 
