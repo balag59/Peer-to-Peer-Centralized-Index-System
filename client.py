@@ -63,15 +63,17 @@ def handle_input():
         print("3. List all available RFC's")
         print("4. Download a RFC file")
         print("5. Quit")
-        if(int(input()) == 1):
+        option = int(input())
+        print('option is ',option)
+        if(option == 1):
             add_rfc(server_host, server_port)
-        elif(int(input()) == 2):
+        elif(option == 2):
             lookup_rfc(server_host, server_port)
-        elif(int(input()) == 3):
+        elif(option == 3):
             list_rfc(server_host, server_port)
-        elif(int(input()) == 4):
+        elif(option == 4):
             download_rfc(server_host, server_port)
-        elif(int(input()) == 5):
+        elif(option == 5):
             quit(server_host, server_port)
         else:
             print('please enter a valid choice')
@@ -81,5 +83,6 @@ def handle_input():
 host = input("please enter an unused host name: ")
 port = int(input("please enter an unused port number: "))
 upload_thread = Thread(target=upload_server)
+upload_thread.daemon = True
 upload_thread.start()
 handle_input()
