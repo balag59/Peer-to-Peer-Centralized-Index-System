@@ -106,7 +106,7 @@ def client_join(data_list,client_socket):
 def client_add(data_list,client_socket):
     host = data_list[1].split(':')[1]
     title = data_list[3].split(':')[1]
-    rfc = title.split('c')[1]
+    rfc = data_list[0].split(' ')[2]
     port = data_list[2].split(':')[1]
     if host in host2rfc_dic:
         host2rfc_dic[host].append(rfc)
@@ -133,15 +133,16 @@ def client_list(client_socket):
 
 #handle lookup rfc quest
 def client_lookup(data_list,client_socket):
-    response = "P2P-CI/1.0 200 OK\n"
     title = data_list[3].split(':')[1]
-    rfc = title.split('c')[1]
-    host_list = []
-    for item in rfc_index:
-        if item.getData().rfc_number == rfc:
-            host_list.append(item.getData().rfc_host)
-    for h in host_list:
-        response += "RFC " + str(rfc) + title + h + str(host2port_dic[h])+'\n'
+    rfc = data_list[0].split(' ')[2]
+    if rfc in rfc2host_dic:
+        response = "P2P-CI/1.0 200 OK\n"
+        host_list = rfc2host_dic[rfc]
+        for host in host_list:
+            response += "RFC " + str(rfc) + title + host + str(host2port_dic[host])+'\n'
+    else:
+        response = "P2P-CI/1.0 404 Not Found\n"
+
     client_socket.send(response.encode())
 
 #handle every new connection from a client
