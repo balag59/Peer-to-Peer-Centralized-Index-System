@@ -1,7 +1,7 @@
 import socket               # Import socket module
 from threading import Thread
 
-#Linked List:
+#Node for Linked Lists:
 class Node:
     def __init__(self,initdata):
         self.data = initdata
@@ -19,6 +19,7 @@ class Node:
     def setNext(self,newnext):
         self.next = newnext
 
+#LinkedLists and it's methods
 class LinkedList:
 
     def __init__(self):
@@ -97,7 +98,7 @@ def client_join(data_list,client_socket):
     active_peers.add(PeerItem(host,port))
     client_socket.send('You have sucessfully joined the P2P network'.encode())
 
-
+#handle rfc's add request
 def client_add(data_list,client_socket,data):
     host = data_list[1].split(':')[1]
     title = data_list[3].split(':')[1]
@@ -105,6 +106,16 @@ def client_add(data_list,client_socket,data):
     port = data_list[2].split(':')[1]
     rfc_index.add(RFCItem(rfc,title,host))
     response = "P2P-CI/1.0 200 OK\n" + "RFC " + str(rfc) + title + host + str(port)
+    client_socket.send(response.encode())
+
+#handle list rfc request
+def client_list(client_socket):
+    response = "P2P-CI/1.0 200 OK\n"
+    for item in rfc_index:
+        rfc = item.getData().rfc_number
+        title = item.getData().rfc_title
+        host = item.getData().rfc_host
+        response += "RFC " + str(rfc) + title + host + str(port)+'\n'
     client_socket.send(response.encode())
 
 #handle every new connection from a client
@@ -116,13 +127,20 @@ def new_connection(client_socket):
         print(line)
     if data_list[0].split(' ')[0] == 'JOIN':
         client_join(data_list,client_socket)
-    if data_list[0].split(' ')[0] == 'ADD':
+    elif data_list[0].split(' ')[0] == 'ADD':
         client_add(data_list,client_socket,data)
+    elif data_list[0].split(' ')[0] == 'LIST':
+        client_list(client_socket)
+    elif data_list[0].split(' ')[0] == 'LOOKUP':
+        client_lookup(data_list,client_socket,data)
+    else:
+        client_badrequest(data_list,client_socket,data)
 
 
 #main functionlity of the central server
 server_socket = socket.socket()         # Create a socket object
-host = socket.gethostname() # Get local machine name
+#host = socket.gethostname() # Get local machine name
+host = socket.gethostbyname(socket.gethostname())
 port = 7734                # Reserve a port for your service.
 server_socket.bind((host, port))        # Bind to the port
 print('central server host is ',host)
