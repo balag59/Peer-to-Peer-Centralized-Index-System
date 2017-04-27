@@ -145,6 +145,10 @@ def client_lookup(data_list,client_socket):
 
     client_socket.send(response.encode())
 
+#client exit
+def client_exit(data_list,client_socket):
+    client_socket.send('Bye'.encode())    
+
 #handle every new connection from a client
 def new_connection(client_socket):
     data = client_socket.recv(1024).decode()
@@ -160,6 +164,8 @@ def new_connection(client_socket):
         client_list(client_socket)
     elif data_list[0].split(' ')[0] == 'LOOKUP':
         client_lookup(data_list,client_socket)
+    elif data_list[0].split(' ')[0] == 'EXIT':
+        client_exit(data_list,client_socket)
     else:
         client_badrequest(data_list,client_socket,data)
 
