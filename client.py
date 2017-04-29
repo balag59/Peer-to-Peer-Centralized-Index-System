@@ -25,6 +25,7 @@ def upload_server():
         new_thread.join()
     upload_socket.close()
 
+
 #peer connection
 def peer_connection(client_socket):
     data = client_socket.recv(1024).decode()
@@ -32,9 +33,28 @@ def peer_connection(client_socket):
     data_list  = data.split('\n')
     for line in data_list:
         print(line)
-    response = "P2P-CI/1.0 200 OK\n" + "Date: " +  datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")+'\nOS: '+ platform.system()
-    client_socket.send(response.encode())
+    rfc = data_list[0].split(' ')[2]
+    file_name = "rfc" + str(rfc) + '.txt'
+    file_list = glob.glob('*.txt')
+    if file_name in file_list:
+        response = "P2P-CI/1.0 200 OK\n" + "Date: " +  datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")+'\nOS: '+ platform.system()
+        client_socket.send(response.encode())
+        f = open(file_name,'r')
+        file_data = f.read(1024).encode()
+        client_socket.send(file_data)
+        while file_data != "":
+            file_data = f.read(1024).encode()
+            client_socket.send(file_data)
+    else:
+        response = "P2P-CI/1.0 404 Not Found"
+        client_socket.send(response.encode())
     client_socket.close()
+    print("What do you want to do?Enter number corresponding to an option you choose")
+    print("1. Add RFC's")
+    print("2. Lookup RFC's")
+    print("3. List all available RFC's")
+    print("4. Download a RFC file")
+    print("5. Quit")
 
 #to send requests to the central server_host
 def send_requests(note, server_host, server_port):
@@ -47,13 +67,28 @@ def send_requests(note, server_host, server_port):
     client_socket.close()
 
 #to send download requests to other peers
-def peer_requests(note, peer_host, peer_port):
+def peer_requests(note, peer_host, peer_port,rfc):
     client_socket = socket.socket()
     client_socket.connect((peer_host, peer_port))
     client_socket.send(note.encode())
     response = client_socket.recv(1024).decode()
     print('response from the peer :')
     print(response)
+    data_list  = response.split('\n')
+    if data_list[0].split(' ')[1] == '200':
+        name = "rfc" + str(rfc) + ".txt"
+        f = open(name,'wb')
+        while(True):
+            d = client_socket.recv(1024)
+            if d:
+                f.write(d)
+                break
+            else:
+                f.close()
+                print('downloaded file sucessfully')
+                break
+    else:
+        print('file name not found')
     client_socket.close()
 
 #send a request to list all rfc's
@@ -88,7 +123,7 @@ def download_rfc(server_host,server_port):
     print('please enter the RFC number you require')
     rfc = int(input())
     note = "GET RFC " +str(rfc)+" P2P-CI/1.0\nHost: "+host+'\nOS: '+ platform.system()
-    peer_requests(note, server_host, peer_port)
+    peer_requests(note, server_host, peer_port, rfc)
 
 #handle quitting
 def quit(server_host, server_port):
@@ -110,7 +145,7 @@ def handle_input():
         note = "ADD RFC " +str(rfc)+" P2P-CI/1.0\nHost: "+host+'\n'+"Port: "+str(port)+'\n'+"Title: "+title
         send_requests(note, server_host, server_port)
     #after the client joins sucessfully give functionality options
-    while(not quit_flag):
+    while(True):
         print("What do you want to do?Enter number corresponding to an option you choose")
         print("1. Add RFC's")
         print("2. Lookup RFC's")
@@ -118,7 +153,6 @@ def handle_input():
         print("4. Download a RFC file")
         print("5. Quit")
         option = int(input())
-        print('option is ',option)
         if(option == 1):
             add_rfc(server_host, server_port)
         elif(option == 2):
