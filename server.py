@@ -153,6 +153,9 @@ def client_exit(data_list,client_socket):
     for item in rfc_index:
         if host == item.getData().rfc_host:
             rfc_index.remove(item.getData())
+    for item in active_peers:
+        if host == item.getData().peer_host:
+            active_peers.remove(item.getData())                    
     client_socket.send('Bye'.encode())
 
 #handle every new connection from a client
