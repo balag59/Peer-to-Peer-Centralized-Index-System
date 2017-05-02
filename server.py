@@ -91,14 +91,10 @@ class RFCItem:
         self.rfc_title = rfc_title
         self.rfc_host = rfc_host
 
-#mappings from host to port
-host2port_dic = {}
-
 #handle new peers joining
 def client_join(data_list,client_socket):
     host = data_list[1].split(':')[1]
     port = data_list[2].split(':')[1]
-    host2port_dic[host] = port
     active_peers.add(PeerItem(host,port))
     client_socket.send('You have sucessfully joined the P2P network'.encode())
 
@@ -143,7 +139,10 @@ def client_lookup(data_list,client_socket):
     if(found):
         response = "P2P-CI/1.0 200 OK\n"
         for host in host_list:
-            response += "RFC " + str(rfc) + title + host + str(host2port_dic[host])+'\n'
+            for item in active_peers:
+                if host == item.getData().peer_host:
+                    port = item.getData().peer_port
+            response += "RFC " + str(rfc) + title + host + str(port)+'\n'
     client_socket.send(response.encode())
 
 #client exit
