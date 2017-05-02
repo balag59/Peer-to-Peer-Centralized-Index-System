@@ -138,19 +138,21 @@ def client_list(client_socket):
 def client_lookup(data_list,client_socket):
     title = data_list[3].split(':')[1]
     rfc = data_list[0].split(' ')[2]
-    if rfc in rfc2host_dic:
-        if title in title2rfc_dic:
-          if title2rfc_dic[title] == rfc:
-            response = "P2P-CI/1.0 200 OK\n"
-            host_list = rfc2host_dic[rfc]
-            for host in host_list:
-                response += "RFC " + str(rfc) + title + host + str(host2port_dic[host])+'\n'
+    found = False
+    host_list = []
+    for item in rfc_index:
+        if rfc == item.getData().rfc_number:
+            if title == item.getData().rfc_title:
+                found = True
+                host_list.append(item.getData().rfc_host)
+            else:
+                response = "P2P-CI/1.0 400 Bad request\n"
         else:
-            response = "P2P-CI/1.0 400 Bad request\n"
-
-    else:
             response = "P2P-CI/1.0 404 Not Found\n"
-
+    if(found):
+        response = "P2P-CI/1.0 200 OK\n"
+        for host in host_list:
+            response += "RFC " + str(rfc) + title + host + str(host2port_dic[host])+'\n'
     client_socket.send(response.encode())
 
 #client exit
