@@ -39,12 +39,12 @@ def peer_connection(client_socket):
     if file_name in file_list:
         response = "P2P-CI/1.0 200 OK\n" + "Date: " +  datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")+'\nOS: '+ platform.system()
         client_socket.send(response.encode())
-        f = open(file_name,'r')
-        file_data = f.read(1024).encode()
-        client_socket.send(file_data)
-        while file_data != "":
+        with open(file_name,'r') as f:
             file_data = f.read(1024).encode()
             client_socket.send(file_data)
+            while file_data != "":
+               file_data = f.read(1024).encode()
+               client_socket.send(file_data)
     else:
         response = "P2P-CI/1.0 404 Not Found"
         client_socket.send(response.encode())
@@ -124,7 +124,9 @@ def download_rfc(server_host,server_port):
     rfc = int(input())
     note = "GET RFC " +str(rfc)+" P2P-CI/1.0\nHost: "+host+'\nOS: '+ platform.system()
     peer_requests(note, server_host, peer_port, rfc)
-
+    note = "ADD RFC " +str(rfc)+" P2P-CI/1.0\nHost: "+host+'\n'+"Port: "+str(port)+'\n'+"Title: "+title
+    send_requests(note, server_host, server_port)
+    
 #handle quitting
 def quit(server_host, server_port):
     note =  "EXIT P2P-CI/1.0\nHost: "+host+ '\n'+"Port: "+str(port)
