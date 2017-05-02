@@ -91,10 +91,9 @@ class RFCItem:
         self.rfc_title = rfc_title
         self.rfc_host = rfc_host
 
+#mappings from host to port
 host2port_dic = {}
-host2rfc_dic = {}
-rfc2host_dic = {}
-title2rfc_dic = {}
+
 #handle new peers joining
 def client_join(data_list,client_socket):
     host = data_list[1].split(':')[1]
@@ -109,16 +108,6 @@ def client_add(data_list,client_socket):
     title = data_list[3].split(':')[1]
     rfc = data_list[0].split(' ')[2]
     port = data_list[2].split(':')[1]
-    if host in host2rfc_dic:
-        host2rfc_dic[host].append(rfc)
-    else:
-        host2rfc_dic[host] = [rfc]
-    if rfc in rfc2host_dic:
-        rfc2host_dic[rfc].append(host)
-    else:
-        rfc2host_dic[rfc] = [host]
-    if title not in title2rfc_dic:
-        title2rfc_dic[title] = rfc
     rfc_index.add(RFCItem(rfc,title,host))
     response = "P2P-CI/1.0 200 OK\n" + "RFC " + str(rfc) + title + host + str(port)
     client_socket.send(response.encode())
@@ -130,7 +119,9 @@ def client_list(client_socket):
         rfc = item.getData().rfc_number
         title = item.getData().rfc_title
         host = item.getData().rfc_host
-        port = host2port_dic[host]
+        for item in active_peers:
+            if host == item.getData().peer_host:
+                port = item.getData().peer_port
         response += "RFC " + str(rfc) + title + host + str(port)+'\n'
     client_socket.send(response.encode())
 
