@@ -24,6 +24,12 @@ def upload_server():
         new_thread.start()
         new_thread.join()
     upload_socket.close()
+    print("What do you want to do?Enter number corresponding to an option you choose")
+    print("1. Add RFC's")
+    print("2. Lookup RFC's")
+    print("3. List all available RFC's")
+    print("4. Download a RFC file")
+    print("5. Quit")
 
 
 #peer connection
@@ -122,11 +128,12 @@ def download_rfc(server_host,server_port):
     peer_port = int(input())
     print('please enter the RFC number you require')
     rfc = int(input())
+    title = 'rfc' + str(rfc)
     note = "GET RFC " +str(rfc)+" P2P-CI/1.0\nHost: "+host+'\nOS: '+ platform.system()
     peer_requests(note, server_host, peer_port, rfc)
     note = "ADD RFC " +str(rfc)+" P2P-CI/1.0\nHost: "+host+'\n'+"Port: "+str(port)+'\n'+"Title: "+title
     send_requests(note, server_host, server_port)
-    
+
 #handle quitting
 def quit(server_host, server_port):
     note =  "EXIT P2P-CI/1.0\nHost: "+host+ '\n'+"Port: "+str(port)
