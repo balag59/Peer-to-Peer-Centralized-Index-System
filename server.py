@@ -94,6 +94,7 @@ class RFCItem:
 host2port_dic = {}
 host2rfc_dic = {}
 rfc2host_dic = {}
+title2rfc_dic = {}
 #handle new peers joining
 def client_join(data_list,client_socket):
     host = data_list[1].split(':')[1]
@@ -116,6 +117,8 @@ def client_add(data_list,client_socket):
         rfc2host_dic[rfc].append(host)
     else:
         rfc2host_dic[rfc] = [host]
+    if title not in title2rfc_dic:
+        title2rfc_dic[title] = rfc
     rfc_index.add(RFCItem(rfc,title,host))
     response = "P2P-CI/1.0 200 OK\n" + "RFC " + str(rfc) + title + host + str(port)
     client_socket.send(response.encode())
@@ -136,18 +139,29 @@ def client_lookup(data_list,client_socket):
     title = data_list[3].split(':')[1]
     rfc = data_list[0].split(' ')[2]
     if rfc in rfc2host_dic:
-        response = "P2P-CI/1.0 200 OK\n"
-        host_list = rfc2host_dic[rfc]
-        for host in host_list:
-            response += "RFC " + str(rfc) + title + host + str(host2port_dic[host])+'\n'
+        if title in title2rfc_dic:
+          if title2rfc_dic[title] == rfc:
+            response = "P2P-CI/1.0 200 OK\n"
+            host_list = rfc2host_dic[rfc]
+            for host in host_list:
+                response += "RFC " + str(rfc) + title + host + str(host2port_dic[host])+'\n'
+        else:
+            response = "P2P-CI/1.0 400 Bad request\n"
+
     else:
-        response = "P2P-CI/1.0 404 Not Found\n"
+            response = "P2P-CI/1.0 404 Not Found\n"
 
     client_socket.send(response.encode())
 
 #client exit
 def client_exit(data_list,client_socket):
-    client_socket.send('Bye'.encode())    
+    host = data_list[1].split(':')[1]
+    port = data_list[2].split(':')[1]
+    print('host {0} at port {1} is quitting'.format(host,port))
+    #for item in rfc_index:
+    #    if host = item.getData().rfc_host:
+    #        rfc_index.remove(item)        
+    client_socket.send('Bye'.encode())
 
 #handle every new connection from a client
 def new_connection(client_socket):
