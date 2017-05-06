@@ -1,7 +1,9 @@
 import socket               # Import socket module
 from threading import Thread
 
+###########################################LINKED LISTS FEATURES BEGINS################################################
 #Node for Linked Lists:
+#Class that models nodes in a linked list
 class Node:
     def __init__(self,initdata):
         self.data = initdata
@@ -20,10 +22,13 @@ class Node:
         self.next = newnext
 
 #LinkedLists and it's methods
+#class that models a linked list
 class LinkedList:
 
     def __init__(self):
         self.head = None
+
+#method to iterate through all the items of a linked list
 
     def __iter__(self):
         current = self.head
@@ -31,10 +36,14 @@ class LinkedList:
             yield current
             current = current.next
 
+#method to add iterms to the linked list
+
     def add(self,item):
         temp = Node(item)
         temp.setNext(self.head)
         self.head = temp
+
+#method to obtain the size of a linked list
 
     def size(self):
         current = self.head
@@ -44,6 +53,8 @@ class LinkedList:
               current = current.getNext()
 
         return count
+
+#method to search a linked list
 
     def search(self,item):
          current = self.head
@@ -55,6 +66,8 @@ class LinkedList:
                    current = current.getNext()
 
          return found
+
+#method to remove a particular item from the linked list
 
     def remove(self,item):
         current = self.head
@@ -77,6 +90,8 @@ active_peers = LinkedList()
 
 #create a new linked list for index of RFC's
 rfc_index = LinkedList()
+
+#########################################LINKED LISTS FEATURES ENDS#####################################################
 
 #Active peers item:
 class PeerItem:
@@ -155,7 +170,7 @@ def client_exit(data_list,client_socket):
             rfc_index.remove(item.getData())
     for item in active_peers:
         if host == item.getData().peer_host:
-            active_peers.remove(item.getData())                    
+            active_peers.remove(item.getData())
     client_socket.send('Bye'.encode())
 
 #handle every new connection from a client
