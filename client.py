@@ -23,13 +23,14 @@ def upload_server():
         new_thread = Thread(target=peer_connection,args=(client_socket,))
         new_thread.start()
         new_thread.join()
+        print("What do you want to do?Enter number corresponding to an option you choose")
+        print("1. Add RFC's")
+        print("2. Lookup RFC's")
+        print("3. List all available RFC's")
+        print("4. Download a RFC file")
+        print("5. Quit")
     upload_socket.close()
-    print("What do you want to do?Enter number corresponding to an option you choose")
-    print("1. Add RFC's")
-    print("2. Lookup RFC's")
-    print("3. List all available RFC's")
-    print("4. Download a RFC file")
-    print("5. Quit")
+
 
 
 #peer connection
@@ -43,7 +44,10 @@ def peer_connection(client_socket):
     file_name = "rfc" + str(rfc) + '.txt'
     file_list = glob.glob('*.txt')
     if file_name in file_list:
-        response = "P2P-CI/1.0 200 OK\n" + "Date: " +  datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")+'\nOS: '+ platform.system()
+        #mtime = os.path.getmtime(file_name)
+        #last_modified_date = datetime.datetime.fromtimestamp(mtime)
+        f_size = os.path.getsize(file_name)
+        response = "P2P-CI/1.0 200 OK\n" + "Date: " +str(datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p"))+'\nOS: '+ platform.system()+'\n'+'Content-Length: '+str(f_size)+'\n'+'Content-Type: text/text'
         client_socket.send(response.encode())
         with open(file_name,'r') as f:
             file_data = f.read(1024).encode()
